@@ -1,5 +1,8 @@
 # Text Behind Image
 
+![text-behind-image](https://github.com/user-attachments/assets/d948fda3-1d17-4c5e-9d73-4623eeb2e946)
+
+
 A free, open-source web application that allows you to create stunning text-behind-image effects with AI-powered background removal.
 
 ## Features
