@@ -178,18 +178,48 @@ const Page = () => {
             canvas.width = bgImg.width;
             canvas.height = bgImg.height;
     
+            // Calculate the scaling factor between original image and preview display
+            // Preview container is 400px height, and image uses objectFit="contain"
+            const previewContainerHeight = 400;
+            const imageAspectRatio = bgImg.width / bgImg.height;
+            
+            // Calculate actual displayed size in preview (considering objectFit="contain")
+            let previewDisplayHeight, previewDisplayWidth;
+            if (imageAspectRatio > 1) {
+                // Wide image - height will be constrained
+                previewDisplayHeight = Math.min(previewContainerHeight, bgImg.height);
+                previewDisplayWidth = previewDisplayHeight * imageAspectRatio;
+            } else {
+                // Tall image - height will be constrained to container
+                previewDisplayHeight = previewContainerHeight;
+                previewDisplayWidth = previewDisplayHeight * imageAspectRatio;
+            }
+            
+            // Scale factor: how much bigger the original is compared to preview
+            const scaleFactor = bgImg.height / previewDisplayHeight;
+    
             ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
     
             textSets.forEach(textSet => {
                 ctx.save();
                 
-                // Set up text properties
-                ctx.font = `${textSet.fontWeight} ${textSet.fontSize * 3}px ${textSet.fontFamily}`;
+                // Set up text properties with proper scaling
+                const scaledFontSize = (textSet.fontSize / 10) * scaleFactor;
+                const scaledLetterSpacing = (textSet.letterSpacing / 10) * scaleFactor;
+                const scaledShadowSize = (textSet.shadowSize / 10) * scaleFactor;
+                
+                ctx.font = `${textSet.fontWeight} ${scaledFontSize}px ${textSet.fontFamily}`;
                 ctx.fillStyle = textSet.color;
                 ctx.globalAlpha = textSet.opacity;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.letterSpacing = `${textSet.letterSpacing}px`;
+                ctx.letterSpacing = `${scaledLetterSpacing}px`;
+                
+                // Add text shadow to match preview
+                ctx.shadowColor = textSet.shadowColor;
+                ctx.shadowOffsetX = scaledShadowSize;
+                ctx.shadowOffsetY = scaledShadowSize;
+                ctx.shadowBlur = scaledShadowSize * 2;
     
                 const x = canvas.width * (textSet.left + 50) / 100;
                 const y = canvas.height * (50 - textSet.top) / 100;
@@ -221,10 +251,10 @@ const Page = () => {
                     // Manual letter spacing implementation
                     const chars = textSet.text.split('');
                     let currentX = 0;
-                    // Calculate total width to center properly
+                    // Calculate total width to center properly (use the already calculated scaledLetterSpacing)
                     const totalWidth = chars.reduce((width, char, i) => {
                         const charWidth = ctx.measureText(char).width;
-                        return width + charWidth + (i < chars.length - 1 ? textSet.letterSpacing : 0);
+                        return width + charWidth + (i < chars.length - 1 ? scaledLetterSpacing : 0);
                     }, 0);
                     
                     const startX = -totalWidth / 2;
@@ -233,7 +263,7 @@ const Page = () => {
                     chars.forEach((char, i) => {
                         ctx.fillText(char, currentX, 0);
                         const charWidth = ctx.measureText(char).width;
-                        currentX += charWidth + (i < chars.length - 1 ? textSet.letterSpacing : 0);
+                        currentX += charWidth + (i < chars.length - 1 ? scaledLetterSpacing : 0);
                     });
                 }
     
@@ -358,7 +388,7 @@ const Page = () => {
                                     color: textSet.color,
                                     fontWeight: textSet.fontWeight,
                                     opacity: textSet.opacity,
-                                    textShadow: `${textSet.shadowSize}px ${textSet.shadowSize}px ${textSet.shadowSize * 2}px ${textSet.shadowColor}`,
+                                    textShadow: `${textSet.shadowSize / 10}px ${textSet.shadowSize / 10}px ${(textSet.shadowSize * 2) / 10}px ${textSet.shadowColor}`,
                                     letterSpacing: `${textSet.letterSpacing / 10}px`,
                                 }}
                             >

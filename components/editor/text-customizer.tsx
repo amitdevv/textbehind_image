@@ -133,8 +133,8 @@ const TextCustomizer: React.FC<TextCustomizerProps> = ({ textSet, handleAttribut
                                 attribute="fontSize"
                                 label="Text Size"
                                 min={10}
-                                max={800}
-                                step={1}
+                                max={3000}
+                                step={10}
                                 currentValue={textSet.fontSize}
                                 handleAttributeChange={(attribute, value) => handleAttributeChange(textSet.id, attribute, value)}
                             />
@@ -262,8 +262,8 @@ const TextCustomizer: React.FC<TextCustomizerProps> = ({ textSet, handleAttribut
                         attribute="fontSize"
                         label="Text Size"
                         min={10}
-                        max={800}
-                        step={1}
+                        max={3000}
+                        step={10}
                         currentValue={textSet.fontSize}
                         handleAttributeChange={(attribute, value) => handleAttributeChange(textSet.id, attribute, value)}
                     />
