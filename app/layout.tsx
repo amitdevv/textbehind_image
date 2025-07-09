@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "Text Behind Image",
   description: "Create text behind image designs",
   icons: {
-    icon: "https://img.icons8.com/pastel-glyph/64/00FF00/image--v2.png",
+    icon: "/image.png",
   },
 };
 
