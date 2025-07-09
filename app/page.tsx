@@ -21,6 +21,28 @@ import { removeBackground } from "@imgly/background-removal";
 
 import '@/app/fonts.css';
 
+// Demo images configuration
+const DEMO_IMAGES = [
+    {
+        id: 1,
+        name: "Demo Image 1",
+        url: "/demo-images/editimage-1.png",
+        description: "Try adding text behind this image"
+    },
+    {
+        id: 2,
+        name: "Demo Image 2",
+        url: "/demo-images/editimage-2.png", 
+        description: "Perfect for creative text effects"
+    },
+    {
+        id: 3,
+        name: "Demo Image 3",
+        url: "/demo-images/editimage-3.png",
+        description: "Great for text overlay designs"
+    }
+];
+
 const Page = () => {
     const { user } = useUser();
 
@@ -31,11 +53,13 @@ const Page = () => {
     const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
     const [isSavingImage, setIsSavingImage] = useState<boolean>(false);
     const [processingMessage, setProcessingMessage] = useState<string>('');
-    const [showDonationModal, setShowDonationModal] = useState<boolean>(false);
+    const [showDemoImages, setShowDemoImages] = useState<boolean>(true);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const handleUploadImage = () => {
+        setShowDemoImages(false);
         if (fileInputRef.current) {
             fileInputRef.current.click();
         }
@@ -50,6 +74,14 @@ const Page = () => {
             setProcessingMessage('Uploading image...');
             await setupImage(imageUrl);
         }
+    };
+
+    const handleDemoImageSelect = async (demoImageUrl: string) => {
+        setShowDemoImages(false);
+        setSelectedImage(demoImageUrl);
+        setIsProcessingImage(true);
+        setProcessingMessage('Loading demo image...');
+        await setupImage(demoImageUrl);
     };
 
     const setupImage = async (imageUrl: string) => {
@@ -118,12 +150,7 @@ const Page = () => {
         setIsProcessingImage(false);
         setIsSavingImage(false);
         setProcessingMessage('');
-        setShowDonationModal(false);
-        
-        // Trigger file input
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
+        setShowDemoImages(true);
     };
 
     const saveCompositeImage = () => {
@@ -150,7 +177,6 @@ const Page = () => {
             setTimeout(() => {
                 setIsSavingImage(false);
                 setProcessingMessage('');
-                setShowDonationModal(true);
             }, 2000);
         };
         
@@ -179,8 +205,8 @@ const Page = () => {
             canvas.height = bgImg.height;
     
             // Calculate the scaling factor between original image and preview display
-            // Preview container is 400px height, and image uses objectFit="contain"
-            const previewContainerHeight = 400;
+            // Preview container is 500px min-height, and image uses objectFit="contain"
+            const previewContainerHeight = 500;
             const imageAspectRatio = bgImg.width / bgImg.height;
             
             // Calculate actual displayed size in preview (considering objectFit="contain")
@@ -288,198 +314,223 @@ const Page = () => {
         <div className='flex flex-col h-screen'>
             <header className="flex items-center justify-between p-6 border-b">
                 <div className='flex items-center gap-5'>
-                    <h1 className="text-2xl font-bold">Text Behind Image</h1>
+                    <div className="flex items-center gap-2">
+                        <Image
+                            src="/image.png"
+                            alt="TextBehindImage Logo"
+                            width={40}
+                            height={40}
+                            className="rounded-lg"
+                        />
+                        <h1 className="text-xl font-semibold">Text Behind Image</h1>
+                    </div>
                 </div>
                 <div className='flex items-center gap-5'>
-                    <div className='flex gap-2'>
-                        <Button onClick={handleUploadImage}>
-                            Upload image
+                    {showDemoImages ? (
+                        <Button onClick={handleUploadImage} variant="outline" className="px-8 py-2 rounded-full">
+                            Add text to image
                         </Button>
-                        {selectedImage && (
-                            <>
-                                <Button 
-                                    onClick={saveCompositeImage} 
-                                    className='hidden md:flex'
-                                    disabled={isSavingImage || isProcessingImage}
-                                >
-                                    {isSavingImage ? 'Saving...' : 'Save image'}
-                                </Button>
-                                <Button 
-                                    onClick={handleEditMoreImages}
-                                    variant="outline"
-                                    className='hidden md:flex'
-                                >
-                                    Edit More Images
-                                </Button>
-                            </>
-                        )}
-                    </div>
+                    ) : (
+                        <div className='flex gap-2'>
+                            <Button onClick={handleUploadImage}>
+                                Upload image
+                            </Button>
+                            {selectedImage && (
+                                <>
+                                    <Button 
+                                        onClick={saveCompositeImage} 
+                                        className='hidden md:flex'
+                                        disabled={isSavingImage || isProcessingImage}
+                                    >
+                                        {isSavingImage ? 'Saving...' : 'Save image'}
+                                    </Button>
+                                    <Button 
+                                        onClick={handleEditMoreImages}
+                                        variant="outline"
+                                        className='hidden md:flex'
+                                    >
+                                        Edit More Images
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <ModeToggle />
             </header>
             <Separator /> 
             
-            <div className='flex flex-col md:flex-row items-start justify-start gap-10 w-full h-screen px-10 mt-2'>
-                <div className="flex flex-col items-start justify-start w-full md:w-1/2 gap-4">
-                    <canvas ref={canvasRef} style={{ display: 'none' }} />
-                    <div className='flex items-center gap-2'>
-                        <Button 
-                            onClick={saveCompositeImage} 
-                            className='md:hidden'
-                            disabled={isSavingImage || isProcessingImage}
-                        >
-                            {isSavingImage ? 'Saving...' : 'Save image'}
-                        </Button>
-                        {selectedImage && (
-                            <Button 
-                                onClick={handleEditMoreImages}
-                                variant="outline"
-                                className='md:hidden'
-                            >
-                                Edit More Images
-                            </Button>
-                        )}
+            <div className='flex flex-col items-center justify-center w-full h-screen p-8'>
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                />
+
+                {showDemoImages ? (
+                    <div className="w-full max-w-6xl h-[600px] border-2 border-gray-300 dark:border-gray-600 rounded-3xl p-8 bg-gray-50 dark:bg-gray-900">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+                            {DEMO_IMAGES.map((demo, index) => (
+                                <div 
+                                    key={demo.id} 
+                                    className="relative overflow-hidden rounded-2xl border-2 border-gray-300 dark:border-gray-600 bg-gray-200 dark:bg-gray-800"
+                                >
+                                    <Image
+                                        src={demo.url}
+                                        alt={`demoimage-${index + 1}`}
+                                        layout="fill"
+                                        objectFit="cover"
+                                        priority
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                    
-                    {/* Status Messages */}
-                    {(isProcessingImage || isSavingImage || processingMessage) && (
-                        <div className="w-full p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <div className="flex items-center gap-2">
-                                {(isProcessingImage || isSavingImage) && (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                ) : (
+                    <div className="flex flex-col md:flex-row items-start justify-start gap-10 w-full h-screen px-10 mt-2">
+                        <div className="flex flex-col items-start justify-start w-full md:w-1/2 gap-4">
+                            <div className='flex items-center gap-2'>
+                                <Button 
+                                    onClick={saveCompositeImage} 
+                                    className='md:hidden'
+                                    disabled={isSavingImage || isProcessingImage}
+                                >
+                                    {isSavingImage ? 'Saving...' : 'Save image'}
+                                </Button>
+                                {selectedImage && (
+                                    <Button 
+                                        onClick={handleEditMoreImages}
+                                        variant="outline"
+                                        className='md:hidden'
+                                    >
+                                        Edit More Images
+                                    </Button>
                                 )}
-                                <p className="text-sm text-blue-800 dark:text-blue-200">
-                                    {processingMessage || 'Processing...'}
-                                </p>
+                            </div>
+                            
+                            {/* Status Messages */}
+                            {(isProcessingImage || isSavingImage || processingMessage) && (
+                                <div className="w-full p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                                    <div className="flex items-center gap-2">
+                                        {(isProcessingImage || isSavingImage) && (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                        )}
+                                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                                            {processingMessage || 'Processing...'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="relative w-full h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
+                                {!selectedImage && (
+                                    <div className="flex flex-col items-center justify-center h-full p-6">
+                                        <div className="text-center mb-8">
+                                            <h3 className="text-lg font-semibold mb-2">Upload an Image</h3>
+                                            <p className="text-muted-foreground mb-6">
+                                                Choose an image to start adding text behind it
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col gap-4">
+                                            <Button onClick={handleUploadImage} size="lg">
+                                                Select Image
+                                            </Button>
+                                            <div className="text-center">
+                                                <p className="text-sm text-muted-foreground mb-3">Or try a demo image:</p>
+                                                <div className="flex gap-2">
+                                                    {DEMO_IMAGES.map((demo, index) => (
+                                                        <Button
+                                                            key={demo.id}
+                                                            onClick={() => handleDemoImageSelect(demo.url)}
+                                                            variant="outline"
+                                                            size="sm"
+                                                        >
+                                                            Demo {index + 1}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                        
+                                {selectedImage && (
+                                    <Image
+                                        src={selectedImage}
+                                        alt="Selected"
+                                        layout="fill"
+                                        objectFit="contain"
+                                        objectPosition="center"
+                                        className="absolute top-0 left-0 w-full h-full z-10"
+                                    />
+                                )}
+                        
+                                {textSets.map((textSet) => (
+                                    <div
+                                        key={textSet.id}
+                                        className="absolute text-center select-none pointer-events-none z-20"
+                                        style={{
+                                            top: `${50 - textSet.top}%`,
+                                            left: `${textSet.left + 50}%`,
+                                            transform: `translate(-50%, -50%) rotate(${textSet.rotation}deg) perspective(1000px) rotateX(${textSet.tiltX}deg) rotateY(${textSet.tiltY}deg)`,
+                                            fontSize: `${textSet.fontSize / 10}px`,
+                                            fontFamily: textSet.fontFamily,
+                                            color: textSet.color,
+                                            fontWeight: textSet.fontWeight,
+                                            opacity: textSet.opacity,
+                                            textShadow: `${textSet.shadowSize / 10}px ${textSet.shadowSize / 10}px ${(textSet.shadowSize * 2) / 10}px ${textSet.shadowColor}`,
+                                            letterSpacing: `${textSet.letterSpacing / 10}px`,
+                                        }}
+                                    >
+                                        {textSet.text}
+                                    </div>
+                                ))}
+
+                                {removedBgImageUrl && (
+                                    <Image
+                                        src={removedBgImageUrl}
+                                        alt="Removed bg"
+                                        layout="fill"
+                                        objectFit="contain" 
+                                        objectPosition="center" 
+                                        className="absolute top-0 left-0 w-full h-full z-30"
+                                    /> 
+                                )}
                             </div>
                         </div>
-                    )}
-                    
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        style={{ display: 'none' }}
-                        onChange={handleFileChange}
-                    />
-
-                    <div className="relative w-full h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-600">
-                        {selectedImage && (
-                            <Image
-                                src={selectedImage}
-                                alt="Selected"
-                                layout="fill"
-                                objectFit="contain"
-                                objectPosition="center"
-                                className="absolute top-0 left-0 w-full h-full z-10"
-                            />
-                        )}
-                        
-                        {textSets.map((textSet) => (
-                            <div
-                                key={textSet.id}
-                                className="absolute text-center select-none pointer-events-none z-20"
-                                style={{
-                                    top: `${50 - textSet.top}%`,
-                                    left: `${textSet.left + 50}%`,
-                                    transform: `translate(-50%, -50%) rotate(${textSet.rotation}deg) perspective(1000px) rotateX(${textSet.tiltX}deg) rotateY(${textSet.tiltY}deg)`,
-                                    fontSize: `${textSet.fontSize / 10}px`,
-                                    fontFamily: textSet.fontFamily,
-                                    color: textSet.color,
-                                    fontWeight: textSet.fontWeight,
-                                    opacity: textSet.opacity,
-                                    textShadow: `${textSet.shadowSize / 10}px ${textSet.shadowSize / 10}px ${(textSet.shadowSize * 2) / 10}px ${textSet.shadowColor}`,
-                                    letterSpacing: `${textSet.letterSpacing / 10}px`,
-                                }}
-                            >
-                                {textSet.text}
-                            </div>
-                        ))}
-
-                        {removedBgImageUrl && (
-                            <Image
-                                src={removedBgImageUrl}
-                                alt="Removed bg"
-                                layout="fill"
-                                objectFit="contain" 
-                                objectPosition="center" 
-                                className="absolute top-0 left-0 w-full h-full z-30"
-                            /> 
-                        )}
-                    </div>
-                </div>
                             
-                <div className="w-full md:w-1/2 h-full">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold">Text Layers</h2>
-                        <Button onClick={addNewTextSet} size="sm">
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            Add Text
-                        </Button>
+                        <div className="w-full md:w-1/2 h-full">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-lg font-semibold">Text Layers</h2>
+                                <Button onClick={addNewTextSet} size="sm">
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    Add Text
+                                </Button>
+                            </div>
+                            
+                            <ScrollArea className="h-[calc(100vh-200px)]">
+                                <Accordion type="single" collapsible className="space-y-2">
+                                    {textSets.map((textSet) => (
+                                        <TextCustomizer
+                                            key={textSet.id}
+                                            textSet={textSet}
+                                            handleAttributeChange={handleAttributeChange}
+                                            removeTextSet={removeTextSet}
+                                            duplicateTextSet={duplicateTextSet}
+                                            userId={user?.id || 'free-user'}
+                                        />
+                                    ))}
+                                </Accordion>
+                            </ScrollArea>
+                        </div>
                     </div>
-                    
-                    <ScrollArea className="h-[calc(100vh-200px)]">
-                        <Accordion type="single" collapsible className="space-y-2">
-                            {textSets.map((textSet) => (
-                                <TextCustomizer
-                                    key={textSet.id}
-                                    textSet={textSet}
-                                    handleAttributeChange={handleAttributeChange}
-                                    removeTextSet={removeTextSet}
-                                    duplicateTextSet={duplicateTextSet}
-                                    userId={user?.id || 'free-user'}
-                                />
-                            ))}
-                        </Accordion>
-                    </ScrollArea>
+                )}
                 </div>
             </div>
+        );
+    };
 
-            {/* Donation Modal */}
-            <Dialog open={showDonationModal} onOpenChange={setShowDonationModal}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle className="text-center">Support This Tool</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col items-center space-y-4 py-4">
-                        <p className="text-center text-sm text-muted-foreground">
-                            If you found this tool helpful, consider supporting its development.
-                        </p>
-                        
-                        <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
-                            <Image
-                                src="https://res.cloudinary.com/dtmo3evjx/image/upload/c_crop,ar_4:3/v1748877982/WhatsApp_Image_2025-06-02_at_20.41.51_f6994f29_qsyejy.jpg"
-                                alt="Donation QR Code"
-                                width={250}
-                                height={250}
-                                className="rounded"
-                            />
-                        </div>
-                        
-                        <p className="text-xs text-center text-muted-foreground">
-                            Scan to donate
-                        </p>
-                    </div>
-                    
-                    <DialogFooter className="flex flex-col sm:flex-row gap-3">
-                        <Button 
-                            variant="outline" 
-                            onClick={() => setShowDonationModal(false)}
-                            className="w-full"
-                        >
-                            Continue Using Tool
-                        </Button>
-                        <Button 
-                            onClick={() => setShowDonationModal(false)}
-                            className="w-full"
-                        >
-                            Thank You / Close
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </div>
-    );
-};
-
-export default Page;
+    export default Page;
